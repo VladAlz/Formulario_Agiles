@@ -30,20 +30,23 @@ namespace ClientesApi.Controllers
         {
             if (string.IsNullOrWhiteSpace(texto))
             {
-                var clientes = await _context.CLIENTES
-                    .OrderBy(c => c.NOM_CLI)
-                    .ToListAsync();
-
-                return Ok(clientes);
+                return Ok(new List<object>());
             }
 
             texto = texto.Trim();
+            var terminos = texto.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            var clientesFiltrados = await _context.CLIENTES
-                .Where(c =>
-                    c.NOM_CLI.Contains(texto) ||
-                    c.APE_CLI.Contains(texto) ||
-                    c.CED_CLI.Contains(texto))
+            var query = _context.CLIENTES.AsQueryable();
+
+            foreach (var termino in terminos)
+            {
+                var terminoActual = termino;
+                query = query.Where(c =>
+                    (c.NOM_CLI + " " + c.APE_CLI).Contains(terminoActual) ||
+                    c.CED_CLI.Contains(terminoActual));
+            }
+
+            var clientesFiltrados = await query
                 .OrderBy(c => c.NOM_CLI)
                 .ToListAsync();
 
@@ -61,5 +64,6 @@ namespace ClientesApi.Controllers
 
             return Ok(cliente);
         }
+        
     }
 }

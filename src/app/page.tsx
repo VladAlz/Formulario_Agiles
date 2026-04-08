@@ -1,13 +1,24 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, User, Package, Trash2, Wand2, Calculator, ReceiptText, FileText, CheckCircle2 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { Search, Plus, User, Package, Trash2, Wand2, Calculator, ReceiptText, FileText, CheckCircle2, Printer } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Toaster } from '@/components/ui/toaster';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -24,25 +35,32 @@ export default function FacturaAgil() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [cart, setCart] = useState<SaleItem[]>([]);
   const [loadingAI, setLoadingAI] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      setClients(await searchClients(''));
-      setProducts(await searchProducts(''));
-    };
-    fetchInitialData();
-  }, []);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [generatedInvoice, setGeneratedInvoice] = useState<{
+    client: Client;
+    items: SaleItem[];
+    totals: InvoiceTotals;
+    response: any;
+  } | null>(null);
 
   const handleClientSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setClientQuery(query);
-    setClients(await searchClients(query));
+    if (query.trim()) {
+      setClients(await searchClients(query));
+    } else {
+      setClients([]);
+    }
   };
 
   const handleProductSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setProductQuery(query);
-    setProducts(await searchProducts(query));
+    if (query.trim()) {
+      setProducts(await searchProducts(query));
+    } else {
+      setProducts([]);
+    }
   };
 
   const addToCart = (product: Product) => {
@@ -95,8 +113,67 @@ export default function FacturaAgil() {
 
   const totals = calculateTotals();
 
+  const handleDownloadPdf = async () => {
+    const invoiceElement = document.getElementById('invoice-modal-content');
+    if (!invoiceElement || !generatedInvoice) return;
+
+    invoiceElement.classList.remove('max-h-[60vh]', 'overflow-y-auto');
+
+    const canvas = await html2canvas(invoiceElement, {
+      scale: 2, // Higher scale for better resolution
+      useCORS: true,
+    });
+
+    invoiceElement.classList.add('max-h-[60vh]', 'overflow-y-auto');
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4'); // portrait, millimeters, A4
+
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const imgProps = pdf.getImageProperties(imgData);
+    const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    const fileName = `Factura-${generatedInvoice.response.numeroDocumento}.pdf`;
+    pdf.save(fileName);
+  };
+
   return (
     <div className="min-h-screen p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
+      <style>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #invoice-modal-content, #invoice-modal-content * {
+            visibility: visible;
+          }
+          #invoice-modal-content {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 20px;
+            border: none;
+            box-shadow: none;
+          }
+          .no-print { display: none !important; }
+        }
+      `}</style>
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-4xl font-bold text-primary flex items-center gap-2">
@@ -378,8 +455,9 @@ export default function FacturaAgil() {
               onClick={async () => {
                 if (!selectedClient) {
                   toast({
-                    title: "Error",
+                    title: "Cliente no seleccionado",
                     description: "Debes seleccionar un cliente.",
+                    variant: "destructive",
                   });
                   return;
                 }
@@ -393,18 +471,25 @@ export default function FacturaAgil() {
                     }))
                   );
 
-                  toast({
-                    title: "Factura emitida",
-                    description: `Venta registrada correctamente. Total: $${response.total}`,
+                  setGeneratedInvoice({
+                    client: selectedClient,
+                    items: cart,
+                    totals: totals,
+                    response: response,
                   });
+
+                  setIsInvoiceModalOpen(true);
 
                   setCart([]);
                   setSelectedClient(null);
+                  setClientQuery('');
+                  setProductQuery('');
 
                 } catch (error: any) {
                   toast({
-                    title: "Error",
+                    title: "Error al emitir factura",
                     description: error.message,
+                    variant: "destructive",
                   });
                 }
               }}
@@ -412,11 +497,6 @@ export default function FacturaAgil() {
               <ReceiptText className="w-5 h-5" />
               Emitir Factura
             </Button>
-            <Button variant="outline" className="w-full gap-2">
-              <Plus className="w-4 h-4" />
-              Guardar Borrador
-            </Button>
-            <Separator />
             <div className="p-4 rounded-md bg-accent/5 border border-accent/20">
               <p className="text-xs text-accent font-semibold flex items-center gap-1">
                 <Calculator className="w-3 h-3" /> Info de Precios
@@ -430,6 +510,104 @@ export default function FacturaAgil() {
       </section>
 
       <Toaster />
+
+      {/* Invoice Success Modal */}
+      <Dialog open={isInvoiceModalOpen} onOpenChange={setIsInvoiceModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader className="no-print">
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="text-green-500" />
+              Factura Emitida con Éxito
+            </DialogTitle>
+            <DialogDescription>
+              La venta ha sido registrada correctamente. A continuación se muestra la factura generada.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {generatedInvoice && (
+            <div id="invoice-modal-content" className="border p-8 rounded-lg bg-white shadow-inner text-sm space-y-8 my-4 max-h-[60vh] overflow-y-auto">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-2xl font-bold text-primary">FACTURAÁGIL S.A.</h2>
+                  <p className="text-xs text-muted-foreground">RUC: 0998877665001</p>
+                  <p className="text-xs text-muted-foreground">Dirección Central: Parque Tecnológico Edif. A</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold">Factura No: {generatedInvoice.response.numeroDocumento}</p>
+                  <p className="text-xs text-muted-foreground">Fecha: {new Date(generatedInvoice.response.fecha).toLocaleDateString('es-ES')}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 border-y py-4">
+                <div>
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Cliente</p>
+                  <p className="font-semibold">{generatedInvoice.client.name}</p>
+                  <p className="text-xs">{generatedInvoice.client.taxId}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Contacto</p>
+                  <p className="text-xs">{generatedInvoice.client.email}</p>
+                  <p className="text-xs">{generatedInvoice.client.phone}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="grid grid-cols-12 font-bold border-b pb-2 text-[10px] uppercase text-muted-foreground">
+                  <span className="col-span-1">Cant</span>
+                  <span className="col-span-7">Descripción</span>
+                  <span className="col-span-2 text-right">P. Unit</span>
+                  <span className="col-span-2 text-right">Total</span>
+                </div>
+                {generatedInvoice.items.map(item => (
+                  <div key={item.id} className="grid grid-cols-12 py-2 border-b border-dashed text-xs">
+                    <span className="col-span-1">{item.quantity}</span>
+                    <span className="col-span-7 flex flex-col">
+                      <span className="font-medium">{item.name}</span>
+                      <span className="text-[10px] text-muted-foreground line-clamp-1">{item.aiDescription || item.description}</span>
+                    </span>
+                    <span className="col-span-2 text-right">${item.basePrice.toFixed(2)}</span>
+                    <span className="col-span-2 text-right font-semibold">${(item.basePrice * item.quantity).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <div className="w-48 space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span>Subtotal:</span>
+                    <span className="font-medium">${generatedInvoice.totals.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span>IVA (16%):</span>
+                    <span className="font-medium">${generatedInvoice.totals.tax.toFixed(2)}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between text-lg font-bold text-primary">
+                    <span>TOTAL:</span>
+                    <span>${generatedInvoice.totals.total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="sm:justify-between gap-2 no-print">
+            <DialogClose asChild>
+              <Button type="button" variant="secondary">Cerrar</Button>
+            </DialogClose>
+            <div className="flex gap-2">
+              <Button type="button" onClick={() => window.print()} className="gap-2">
+                <Printer className="w-4 h-4" />
+                Imprimir
+              </Button>
+              <Button type="button" onClick={handleDownloadPdf} className="gap-2">
+                <FileText className="w-4 h-4" />
+                Guardar como PDF
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

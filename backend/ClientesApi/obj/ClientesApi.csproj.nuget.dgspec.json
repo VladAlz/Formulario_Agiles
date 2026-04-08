@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\ASUS\\Desktop\\Proyecto Agiles\\Formulario_Agiles\\backend\\ClientesApi\\ClientesApi.csproj": {}
+    "C:\\Users\\Vladimir\\Desktop\\Testeo Agiles\\Testeo-Agiles-main\\backend\\ClientesApi\\ClientesApi.csproj": {}
   },
   "projects": {
-    "C:\\Users\\ASUS\\Desktop\\Proyecto Agiles\\Formulario_Agiles\\backend\\ClientesApi\\ClientesApi.csproj": {
+    "C:\\Users\\Vladimir\\Desktop\\Testeo Agiles\\Testeo-Agiles-main\\backend\\ClientesApi\\ClientesApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ASUS\\Desktop\\Proyecto Agiles\\Formulario_Agiles\\backend\\ClientesApi\\ClientesApi.csproj",
+        "projectUniqueName": "C:\\Users\\Vladimir\\Desktop\\Testeo Agiles\\Testeo-Agiles-main\\backend\\ClientesApi\\ClientesApi.csproj",
         "projectName": "ClientesApi",
-        "projectPath": "C:\\Users\\ASUS\\Desktop\\Proyecto Agiles\\Formulario_Agiles\\backend\\ClientesApi\\ClientesApi.csproj",
-        "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ASUS\\Desktop\\Proyecto Agiles\\Formulario_Agiles\\backend\\ClientesApi\\obj\\",
+        "projectPath": "C:\\Users\\Vladimir\\Desktop\\Testeo Agiles\\Testeo-Agiles-main\\backend\\ClientesApi\\ClientesApi.csproj",
+        "packagesPath": "C:\\Users\\Vladimir\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Vladimir\\Desktop\\Testeo Agiles\\Testeo-Agiles-main\\backend\\ClientesApi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Vladimir\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"

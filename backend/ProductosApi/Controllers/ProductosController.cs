@@ -30,11 +30,7 @@ namespace ProductosApi.Controllers
         {
             if (string.IsNullOrWhiteSpace(texto))
             {
-                var productos = await _context.PRODUCTOS
-                    .OrderBy(p => p.NOM_PRO)
-                    .ToListAsync();
-
-                return Ok(productos);
+                return Ok(new List<object>());
             }
 
             texto = texto.Trim();

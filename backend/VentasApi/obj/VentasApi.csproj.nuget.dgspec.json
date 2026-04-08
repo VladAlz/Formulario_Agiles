@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\ASUS\\Desktop\\Proyecto Agiles\\Formulario_Agiles\\backend\\VentasApi\\VentasApi.csproj": {}
+    "C:\\Users\\Vladimir\\Desktop\\Testeo Agiles\\Testeo-Agiles-main\\backend\\VentasApi\\VentasApi.csproj": {}
   },
   "projects": {
-    "C:\\Users\\ASUS\\Desktop\\Proyecto Agiles\\Formulario_Agiles\\backend\\VentasApi\\VentasApi.csproj": {
+    "C:\\Users\\Vladimir\\Desktop\\Testeo Agiles\\Testeo-Agiles-main\\backend\\VentasApi\\VentasApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ASUS\\Desktop\\Proyecto Agiles\\Formulario_Agiles\\backend\\VentasApi\\VentasApi.csproj",
+        "projectUniqueName": "C:\\Users\\Vladimir\\Desktop\\Testeo Agiles\\Testeo-Agiles-main\\backend\\VentasApi\\VentasApi.csproj",
         "projectName": "VentasApi",
-        "projectPath": "C:\\Users\\ASUS\\Desktop\\Proyecto Agiles\\Formulario_Agiles\\backend\\VentasApi\\VentasApi.csproj",
-        "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ASUS\\Desktop\\Proyecto Agiles\\Formulario_Agiles\\backend\\VentasApi\\obj\\",
+        "projectPath": "C:\\Users\\Vladimir\\Desktop\\Testeo Agiles\\Testeo-Agiles-main\\backend\\VentasApi\\VentasApi.csproj",
+        "packagesPath": "C:\\Users\\Vladimir\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Vladimir\\Desktop\\Testeo Agiles\\Testeo-Agiles-main\\backend\\VentasApi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Vladimir\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
