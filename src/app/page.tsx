@@ -13,7 +13,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { generateProductDescription } from '@/ai/flows/generate-product-description-flow';
 import type { Client, Product, SaleItem, InvoiceTotals } from './lib/types';
-import { searchClients, searchProducts } from './lib/api-mock';
+import { searchClients, searchProducts, emitirVenta } from './lib/api-mock';
 
 export default function FacturaAgil() {
   const { toast } = useToast();
@@ -371,7 +371,44 @@ export default function FacturaAgil() {
             <CardTitle className="text-lg">Acciones de Emisión</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button className="w-full h-12 text-lg font-bold gap-2" disabled={cart.length === 0}>
+
+            <Button
+              className="w-full h-12 text-lg font-bold gap-2"
+              disabled={cart.length === 0 || !selectedClient}
+              onClick={async () => {
+                if (!selectedClient) {
+                  toast({
+                    title: "Error",
+                    description: "Debes seleccionar un cliente.",
+                  });
+                  return;
+                }
+
+                try {
+                  const response = await emitirVenta(
+                    selectedClient.id,
+                    cart.map(item => ({
+                      id: item.code,
+                      quantity: item.quantity,
+                    }))
+                  );
+
+                  toast({
+                    title: "Factura emitida",
+                    description: `Venta registrada correctamente. Total: $${response.total}`,
+                  });
+
+                  setCart([]);
+                  setSelectedClient(null);
+
+                } catch (error: any) {
+                  toast({
+                    title: "Error",
+                    description: error.message,
+                  });
+                }
+              }}
+            >
               <ReceiptText className="w-5 h-5" />
               Emitir Factura
             </Button>

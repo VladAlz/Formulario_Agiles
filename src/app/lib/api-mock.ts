@@ -106,4 +106,54 @@ export async function searchProducts(query: string): Promise<Product[]> {
     console.error('Error al consultar productos:', error);
     return [];
   }
+  
+}
+
+const VENTAS_API_URL = 'http://localhost:5100/api/ventas';
+
+export async function emitirVenta(
+  idCliente: string,
+  detalles: { id: string; quantity: number }[]
+) {
+  try {
+    const body = {
+      id_CLI: idCliente,
+      num_VEN: generarNumeroFactura(),
+      detalles: detalles.map(d => ({
+        id_PRO: d.id,
+        can_VDE: d.quantity,
+      })),
+    };
+
+    console.log('ENVIANDO VENTA:', body);
+
+    const response = await fetch(`${VENTAS_API_URL}/emitir`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.mensaje || 'Error al emitir venta');
+    }
+
+    const data = await response.json();
+    console.log('RESPUESTA VENTA:', data);
+
+    return data;
+  } catch (error) {
+    console.error('Error al emitir venta:', error);
+    throw error;
+  }
+}
+
+function generarNumeroFactura(): string {
+  const random = Math.floor(Math.random() * 999999)
+    .toString()
+    .padStart(6, '0');
+
+  return `001-001-${random}`;
 }
