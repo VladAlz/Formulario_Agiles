@@ -70,6 +70,14 @@ export default function FacturaAgil() {
     }
     const existing = cart.find(item => item.id === product.id);
     if (existing) {
+      if (existing.quantity + 1 > product.stock) {
+        toast({
+          title: "Stock insuficiente",
+          description: `No se pueden agregar más unidades de "${product.name}". Límite de stock alcanzado.`,
+          variant: "destructive",
+        });
+        return;
+      }
       setCart(cart.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item));
     } else {
       setCart([...cart, { ...product, quantity: 1 }]);
@@ -83,6 +91,15 @@ export default function FacturaAgil() {
 
   const updateQuantity = (id: string, qty: number) => {
     if (qty < 1) return;
+    const itemInCart = cart.find(item => item.id === id);
+    if (itemInCart && qty > itemInCart.stock) {
+      toast({
+        title: "Stock insuficiente",
+        description: `No hay suficiente stock para "${itemInCart.name}". Disponible: ${itemInCart.stock}.`,
+        variant: "destructive",
+      });
+      return;
+    }
     setCart(cart.map(item => item.id === id ? { ...item, quantity: qty } : item));
   };
 
@@ -182,10 +199,6 @@ export default function FacturaAgil() {
           </h1>
           <p className="text-muted-foreground">Sistema de Facturación Inteligente</p>
         </div>
-        <div className="flex gap-2">
-          <Badge variant="secondary" className="px-4 py-1 text-sm">Estado: Operativo</Badge>
-          <Badge variant="outline" className="px-4 py-1 text-sm bg-card">SQL Server / .NET Core Ready</Badge>
-        </div>
       </header>
 
       {/* SECCIÓN 1: Clientes y Productos */}
@@ -201,8 +214,8 @@ export default function FacturaAgil() {
           <CardContent className="space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Buscar por nombre o identificación..." 
+              <Input
+                placeholder="Buscar por nombre o identificación..."
                 className="pl-10"
                 value={clientQuery}
                 onChange={handleClientSearch}
@@ -211,7 +224,7 @@ export default function FacturaAgil() {
             <ScrollArea className="h-40 border rounded-md p-2 bg-muted/20">
               <div className="space-y-1">
                 {clients.map(client => (
-                  <div 
+                  <div
                     key={client.id}
                     className={`p-3 rounded-md cursor-pointer transition-colors flex justify-between items-center ${selectedClient?.id === client.id ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/5'}`}
                     onClick={() => setSelectedClient(client)}
@@ -246,8 +259,8 @@ export default function FacturaAgil() {
           <CardContent className="space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Código o nombre del producto..." 
+              <Input
+                placeholder="Código o nombre del producto..."
                 className="pl-10"
                 value={productQuery}
                 onChange={handleProductSearch}
@@ -321,20 +334,23 @@ export default function FacturaAgil() {
                         </TableCell>
                         <TableCell className="font-medium">${item.basePrice}</TableCell>
                         <TableCell>
-                          <Input 
-                            type="number" 
-                            min="1" 
-                            value={item.quantity} 
-                            onChange={(e) => updateQuantity(item.id, parseInt(e.target.value))}
+                          <Input
+                            type="number"
+                            min="1"
+                            value={item.quantity}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value);
+                              if (!isNaN(val)) updateQuantity(item.id, val);
+                            }}
                             className="h-8 w-16"
                           />
                         </TableCell>
                         <TableCell className="font-bold text-accent">${item.basePrice * item.quantity}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1">
-                            <Button 
-                              size="icon" 
-                              variant="ghost" 
+                            <Button
+                              size="icon"
+                              variant="ghost"
                               className="text-destructive hover:bg-destructive/10"
                               onClick={() => removeFromCart(item.id)}
                             >
@@ -452,6 +468,17 @@ export default function FacturaAgil() {
                   return;
                 }
 
+                for (const item of cart) {
+                  if (item.quantity > item.stock) {
+                    toast({
+                      title: "Stock insuficiente",
+                      description: `No hay suficiente stock para el producto "${item.name}". Stock disponible: ${item.stock}, cantidad solicitada: ${item.quantity}.`,
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                }
+
                 try {
                   const response = await emitirVenta(
                     selectedClient.id,
@@ -492,7 +519,7 @@ export default function FacturaAgil() {
                 <Calculator className="w-3 h-3" /> Info de Precios
               </p>
               <p className="text-[10px] text-muted-foreground mt-1">
-                Los precios son dinámicos y se actualizan según la disponibilidad sincronizada con los microservicios .NET Core.
+                Los precios son dinámicos y se actualizan según: la temporada, oferta, demanda y disponibilidad.
               </p>
             </div>
           </CardContent>
@@ -513,7 +540,7 @@ export default function FacturaAgil() {
               La venta ha sido registrada correctamente. A continuación se muestra la factura generada.
             </DialogDescription>
           </DialogHeader>
-          
+
           {generatedInvoice && (
             <div id="invoice-modal-content" className="border p-8 rounded-lg bg-white shadow-inner text-sm space-y-8 my-4 max-h-[60vh] overflow-y-auto">
               <div className="flex justify-between items-start">

@@ -33,16 +33,17 @@ function mapProductoFromApi(producto: any): Product {
   const p = normalizeKeys(producto);
   console.log('PRODUCTO NORMALIZADO:', p);
 
-  const stock = Number(p['sto_pro'] || 0);
+  const stock = Number.isFinite(Number(p['sto_pro'])) ? Number(p['sto_pro']) : 0;
   const disponibilidad = stock > 0 ? 'En stock' : 'Agotado';
 
   return {
     id: p['id_pro'] || '',
     code: p['id_pro'] || '',
     name: p['nom_pro'] || '',
-    basePrice: Number(p['pre_pro'] || 0),
+    basePrice: Number.isFinite(Number(p['pre_pro'])) ? Number(p['pre_pro']) : 0,
     availability: disponibilidad,
     description: `Producto disponible en inventario. Stock actual: ${stock}.`,
+    stock,
   };
 }
 

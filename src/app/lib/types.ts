@@ -14,6 +14,7 @@ export interface Product {
   basePrice: number;
   availability: 'En stock' | 'Bajo pedido' | 'Agotado';
   description: string;
+  stock: number;
 }
 
 export interface SaleItem extends Product {
