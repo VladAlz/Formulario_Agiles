@@ -335,16 +335,6 @@ export default function FacturaAgil() {
                             <Button 
                               size="icon" 
                               variant="ghost" 
-                              title="Mejorar descripción con IA"
-                              className="text-primary hover:bg-primary/10"
-                              onClick={() => handleGenerateDescription(item)}
-                              disabled={loadingAI === item.id}
-                            >
-                              <Wand2 className={`w-4 h-4 ${loadingAI === item.id ? 'animate-pulse' : ''}`} />
-                            </Button>
-                            <Button 
-                              size="icon" 
-                              variant="ghost" 
                               className="text-destructive hover:bg-destructive/10"
                               onClick={() => removeFromCart(item.id)}
                             >
