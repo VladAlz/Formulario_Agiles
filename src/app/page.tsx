@@ -130,6 +130,86 @@ export default function FacturaAgil() {
 
   const totals = calculateTotals();
 
+  const handlePrint = () => {
+    const invoiceElement = document.getElementById('invoice-modal-content');
+    if (!invoiceElement) return;
+
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    if (!printWindow) return;
+
+    const invoiceHTML = invoiceElement.innerHTML;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="es">
+        <head>
+          <meta charset="UTF-8" />
+          <title>Factura</title>
+          <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body {
+              font-family: Arial, sans-serif;
+              font-size: 13px;
+              color: #111;
+              padding: 32px;
+              background: white;
+            }
+            h2 { font-size: 22px; font-weight: bold; color: #1a56db; }
+            p { margin: 2px 0; }
+            .text-xs { font-size: 11px; }
+            .text-muted-foreground { color: #6b7280; }
+            .font-bold { font-weight: bold; }
+            .font-semibold { font-weight: 600; }
+            .text-right { text-align: right; }
+            .text-primary { color: #1a56db; }
+            .uppercase { text-transform: uppercase; }
+            .border-y { border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
+            .border-b { border-bottom: 1px solid #e5e7eb; }
+            .border-dashed { border-bottom: 1px dashed #e5e7eb; }
+            .py-4 { padding-top: 16px; padding-bottom: 16px; }
+            .pb-2 { padding-bottom: 8px; }
+            .py-2 { padding-top: 8px; padding-bottom: 8px; }
+            .pt-4 { padding-top: 16px; }
+            .mb-1 { margin-bottom: 4px; }
+            .space-y-2 > * + * { margin-top: 8px; }
+            .space-y-8 > * + * { margin-top: 32px; }
+            .grid { display: grid; }
+            .grid-cols-2 { grid-template-columns: 1fr 1fr; }
+            .grid-cols-12 { grid-template-columns: repeat(12, 1fr); }
+            .col-span-1 { grid-column: span 1; }
+            .col-span-2 { grid-column: span 2; }
+            .col-span-7 { grid-column: span 7; }
+            .gap-4 { gap: 16px; }
+            .flex { display: flex; }
+            .flex-col { flex-direction: column; }
+            .justify-between { justify-content: space-between; }
+            .justify-end { justify-content: flex-end; }
+            .items-start { align-items: flex-start; }
+            .text-lg { font-size: 18px; }
+            .w-48 { width: 192px; }
+            .line-clamp-1 { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+            hr { border: none; border-top: 1px solid #e5e7eb; margin: 4px 0; }
+            .text-green-600 { color: #16a34a; font-style: italic; font-size: 11px; }
+            @media print {
+              body { padding: 16px; }
+              @page { margin: 10mm; size: A4; }
+            }
+          </style>
+        </head>
+        <body>
+          ${invoiceHTML}
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
+  };
+
   const handleDownloadPdf = async () => {
     const invoiceElement = document.getElementById('invoice-modal-content');
     if (!invoiceElement || !generatedInvoice) return;
@@ -170,27 +250,6 @@ export default function FacturaAgil() {
 
   return (
     <div className="min-h-screen p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #invoice-modal-content, #invoice-modal-content * {
-            visibility: visible;
-          }
-          #invoice-modal-content {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 20px;
-            border: none;
-            box-shadow: none;
-          }
-          .no-print { display: none !important; }
-        }
-      `}</style>
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-4xl font-bold text-primary flex items-center gap-2">
@@ -613,7 +672,7 @@ export default function FacturaAgil() {
               <Button type="button" variant="secondary">Cerrar</Button>
             </DialogClose>
             <div className="flex gap-2">
-              <Button type="button" onClick={() => window.print()} className="gap-2">
+              <Button type="button" onClick={handlePrint} className="gap-2">
                 <Printer className="w-4 h-4" />
                 Imprimir
               </Button>
