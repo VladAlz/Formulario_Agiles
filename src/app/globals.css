@@ -59,3 +59,7 @@
     @apply font-headline tracking-tight;
   }
 }
+
+nextjs-portal {
+  display: none !important;
+}

@@ -124,7 +124,7 @@ export default function FacturaAgil() {
 
   const calculateTotals = (): InvoiceTotals => {
     const subtotal = cart.reduce((acc, item) => acc + (item.basePrice * item.quantity), 0);
-    const tax = subtotal * 0.16; // 16% IVA example
+    const tax = subtotal * 0.15; // 16% IVA example
     return { subtotal, tax, total: subtotal + tax };
   };
 
